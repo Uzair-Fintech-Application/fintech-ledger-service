@@ -1,5 +1,7 @@
-package com.fintech.ledger.exception;
+package com.fintech.ledger.advice;
 
+import com.fintech.ledger.exception.InsufficientFundsException;
+import com.fintech.ledger.exception.ResourceNotFoundException;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

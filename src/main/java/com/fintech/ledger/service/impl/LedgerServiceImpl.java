@@ -1,5 +1,7 @@
 package com.fintech.ledger.service.impl;
 
+import com.fintech.ledger.dto.EntityMapper;
+import com.fintech.ledger.dto.LedgerEntryResponse;
 import com.fintech.ledger.dto.TransferRequest;
 import com.fintech.ledger.enums.EntryType;
 import com.fintech.ledger.entity.LedgerEntry;
@@ -12,6 +14,8 @@ import com.fintech.ledger.service.LedgerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +31,7 @@ public class LedgerServiceImpl implements LedgerService {
 
     private final WalletRepository walletRepository;
     private final LedgerEntryRepository ledgerEntryRepository;
+    private final EntityMapper entityMapper;
     private final MessageSource messageSource;
 
     @Override
@@ -84,6 +89,20 @@ public class LedgerServiceImpl implements LedgerService {
         log.info("TRANSFER OK | ref={} | from={} | to={} | amount={} | fromBal={} | toBal={} | tradeId={}",
                 refId, fromId, toId, amount, from.getAvailableBalance(), to.getAvailableBalance(), request.getTradeId());
         return refId;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<LedgerEntryResponse> getWalletLedger(Integer walletId, Pageable pageable) {
+        return ledgerEntryRepository.findByWalletIdOrderByCreatedAtDesc(walletId, pageable)
+                .map(entityMapper::toLedgerEntryResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<LedgerEntryResponse> getGlobalAudit(Pageable pageable) {
+        return ledgerEntryRepository.findAll(pageable)
+                .map(entityMapper::toLedgerEntryResponse);
     }
 
     private Wallet lockWallet(Integer walletId) {
